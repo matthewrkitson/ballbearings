@@ -54,11 +54,6 @@ public class PhysicsEngine {
         return map;
     }
 
-    /**
-     * Figures the lander state (x, y, fuel, ...) based on the passage of
-     * realtime. Does not invalidate(). Called at the start of draw().
-     * Detects the end-of-game and sets the UI to the next state.
-     */
     public void update() {
         long now = System.currentTimeMillis();
 
@@ -66,6 +61,9 @@ public class PhysicsEngine {
         if (mLastTime > now) return;
 
         float dt = (now - mLastTime) / 10000.0f;
+        final float g = 9.80665f;
+        final float damping = 1.0f;
+        final float wallDamping = 0.8f;
 
         for (Ball ball : balls) {
             // Log.d(logTag, String.format("Elapsed time: %f s", dt));
@@ -82,36 +80,44 @@ public class PhysicsEngine {
 
             // Acceleration due to gravity.
             float ax = 0;
-            float ay = 9.807f;
+            float ay = g;
             float az = 0;
 
-            // Force due to walls.
-            if (x - r < 0 || x + r > width)
-            {
-                // Calculate an acceleration that would cause the ball to have the opposite velocity
-                // within the next dt. Also reposition so that we're no longer in the wall.
-                ax = -2 * vx / dt;
-                if (x - r < 0) x = r;
-                if (x + r > width) x = width - r;
+            // If we've hit a wall, reset the velocity to be away from the wall, and reset position
+            // to be outside the wall.
+            if (x - r < 0) {
+                vx = wallDamping * Math.abs(vx);
+                x = r;
             }
 
-            if (y - r < 0 || y + r > height)
-            {
-                ay = -2 * vy / dt;
-                if (y - r < 0) y = r;
-                if (y + r > height) y = height - r;
+            if (x + r > width) {
+                vx = -wallDamping * Math.abs(vx);
+                x = width - r;
             }
 
-            if (z - r < 0 || z + r > depth)
-            {
-                az = -2 * vz / dt;
-                if (z - r < 0) z = r;
-                if (z + r > depth) z = depth - r;
+            if (y - r < 0) {
+                vy = wallDamping * Math.abs(vy);
+                y = r;
             }
 
-            float vx1 = vx + dt * ax;
-            float vy1 = vy + dt * ay;
-            float vz1 = vz + dt * az;
+            if (y + r > height) {
+                vy = -wallDamping * Math.abs(vy);
+                y = height - r;
+            }
+
+            if (z - r < 0) {
+                vz = wallDamping * Math.abs(vz);
+                z = r;
+            }
+
+            if (z + r > depth) {
+                vz = -wallDamping * Math.abs(vz);
+                z = depth - r;
+            }
+
+            float vx1 = (vx + dt * ax) * damping;
+            float vy1 = (vy + dt * ay) * damping;
+            float vz1 = (vz + dt * az) * damping;
 
             float x1 = x + (vx * dt) + (0.5f * ax * dt * dt);
             float y1 = y + (vy * dt) + (0.5f * ay * dt * dt);

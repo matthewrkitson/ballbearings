@@ -38,8 +38,11 @@ public class PhysicsThread extends Thread {
         Ball[] balls = {
                 new Ball(0.003f, 0.003f, 0, 0.002f),
                 new Ball(0.010f, 0.010f, 0, 0.003f),
-                new Ball(0.030f, 0.030f, 0, 0.004f)
+                new Ball(0.030f, 0.030f, 0, 0.004f),
+                new Ball(0.030f, 0.030f, 0, 0.002f)
         };
+
+        balls[3].setVx(0.100f);
 
         engine = new PhysicsEngine(balls);
         drawer = new BallDrawer(surfaceHolder, context, displayMetrics, handler, engine);
